@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ychs.lawfirmsys.mapper.CasesMapper">
+    <sql id="queryInfo">
+        <where>
+            <if test="periodMonth != null and periodMonth !=''">
+                and YEAR(c.juridical_days)=YEAR(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+                and MONTH(c.juridical_days)=MONTH(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+            </if>
+            <if test="lawyerId != null and lawyerId != ''">
+                and c.lawyer_name like (
+                    select l.lawyer_name
+                    from lawyer l
+                    where l.id=#{lawyerId}
+                )
+            </if>
+            <if test="state != null and state != ''">
+                and c.state = #{state}
+            </if>
+            <if test="lawyerName != null and lawyerName != ''">
+                and c.lawyer_name = #{lawyerName}
+            </if>
+        </where>
+    </sql>
+    <select id="getCasesByCondition" parameterType="cases" resultType="cases">
+        SELECT c.*,t.typeName
+        FROM `case` c LEFT JOIN `type` t ON t.typeId = c.type_id
+        <include refid="queryInfo"></include>
+    </select>
+
+    <sql id="staInfo">
+        <where>
+            <if test="periodMonth != null and periodMonth !=''">
+                and YEAR(c.juridical_days)=YEAR(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+                and MONTH(c.juridical_days)=MONTH(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+            </if>
+            <if test="lawyerId != null and lawyerId != ''">
+                and c.lawyer_name = (
+                    select l.lawyer_name
+                    from lawyer l
+                    where l.id=#{lawyerId}
+                )
+            </if>
+        </where>
+    </sql>
+    <select id="getCaseStaType" parameterType="cases" resultType="cases">
+        SELECT t.typeName,COUNT(*) AS typeTotal
+        FROM `case` c LEFT JOIN TYPE t ON c.type_id=t.typeId
+        <include refid="staInfo2"></include>
+        GROUP BY c.type_id,t.typeName
+    </select>
+    <select id="getCaseStaRes" parameterType="cases" resultType="cases">
+        select result,count(*) as resTotal
+        from `case` c
+        <include refid="staInfo2"></include>
+        group by result
+    </select>
+    <select id="getCaseTotal" parameterType="cases" resultType="int">
+        SELECT COUNT(*) AS total
+        FROM `case` c
+        <include refid="staInfo"></include>
+    </select>
+
+    <sql id="staInfo2">
+        <where>
+            <if test="1">
+                and c.state=true
+            </if>
+            <if test="periodMonth != null and periodMonth !=''">
+                and YEAR(c.juridical_days)=YEAR(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+                and MONTH(c.juridical_days)=MONTH(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+            </if>
+            <if test="lawyerId != null and lawyerId != ''">
+                and c.lawyer_name = (
+                select l.lawyer_name
+                from lawyer l
+                where l.id=#{lawyerId}
+                )
+            </if>
+        </where>
+    </sql>
+    <select id="getClosedCaseTotal" parameterType="cases" resultType="int">
+        SELECT COUNT(*) AS total
+        FROM `case` c
+        <include refid="staInfo2"></include>
+    </select>
+
+    <sql id="staResInfo">
+        <where>
+            <if test="1">
+                and t.typeName IN ('刑事案件', '民事案件', '行政案件', '经济案件')
+                and c.state = true
+            </if>
+            <if test="periodMonth != null and periodMonth !=''">
+                and YEAR(c.juridical_days)=YEAR(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+                and MONTH(c.juridical_days)=MONTH(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+            </if>
+            <if test="lawyerId != null and lawyerId != ''">
+                and c.lawyer_name = (
+                select l.lawyer_name
+                from lawyer l
+                where l.id=#{lawyerId}
+                )
+            </if>
+        </where>
+    </sql>
+    <select id="getCaseStaTypeRes" parameterType="cases" resultType="cases">
+        SELECT t.typeName,c.result,COUNT(*) AS resTotal
+        FROM `case` c LEFT JOIN TYPE t ON c.type_id = t.typeId
+        <include refid="staResInfo"></include>
+        GROUP BY t.typeName,c.result;
+    </select>
+
+    <insert id="addCases" parameterType="cases">
+        insert into `case`(occurrent_year, contract_num, case_name, type_id, lawyer_name, agent_type, court, juridical_days, state, result)
+        values (#{occurrentYear}, #{contractNum}, #{caseName}, #{typeId}, #{lawyerName}, #{agentType}, #{court}, #{juridicalDays}, #{state}, #{result})
+    </insert>
+</mapper>

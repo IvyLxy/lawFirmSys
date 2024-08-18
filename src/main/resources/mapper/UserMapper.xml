@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ychs.lawfirmsys.mapper.UserMapper">
+    <sql id="loginInfo">
+        <where>
+            <if test="username!=null and username!=''">
+                and u.username=#{username}
+            </if>
+            <if test="phone!=null and phone!=''">
+                and u.phone=#{phone}
+            </if>
+            <if test="1">
+                and u.state=1
+            </if>
+        </where>
+    </sql>
+    <select id="loadUser" parameterType="user" resultType="user">
+        select u.*,r.roleName
+        from user u left join role r on u.role_id=r.rid
+        <include refid="loginInfo"></include>
+    </select>
+    <sql id="queryInfo">
+        <where>
+            <if test="username != null and username !=''">
+                and u.username=#{username}
+            </if>
+            <if test="realname != null and realname !=''">
+                and u.realname=#{realname}
+            </if>
+            <if test="roleId != null and roleId != ''">
+                and u.role_id=#{roleId}
+            </if>
+            <if test="state != null">
+                and u.state =#{state}
+            </if>
+        </where>
+    </sql>
+    <select id="getUserByCondition" parameterType="user" resultType="user">
+        select u.id,u.username,u.realname,u.phone,u.role_id,r.roleName,u.state
+        from user u
+        left join role r on u.role_id=r.rid
+        <include refid="queryInfo"></include>
+        order by u.id
+    </select>
+    <select id="getUserByCondition2" parameterType="user" resultType="user">
+        select u.id,u.username,u.realname,u.phone,u.role_id,r.roleName,u.state
+        from user u
+        left join role r on u.role_id=r.rid
+        <include refid="queryInfo"></include>
+        order by u.id
+    </select>
+    <sql id="editInfo">
+        <set>
+            <if test="checkPass !=null and checkPass!=''">
+                u.password=#{checkPass},
+                u.is_first_login=false,
+            </if>
+            <if test="username!=null and username!=''">
+                u.username=#{username},
+            </if>
+            <if test="realname!=null and realname!=''">
+                u.realname=#{realname},
+            </if>
+            <if test="phone!=null and phone!=''">
+                u.phone=#{phone},
+            </if>
+            <if test="roleId!=null">
+                u.role_id=#{roleId},
+            </if>
+            <if test="state==false">
+                u.state=0,
+            </if>
+            <if test="state==true">
+                u.state=1,
+            </if>
+        </set>
+    </sql>
+    <sql id="editInfo2">
+        <where>
+            <if test="id!=null">
+                and id=#{id}
+            </if>
+            <if test="username!=null and username!=''">
+                and username=#{username}
+            </if>
+            <if test="phone!=null and phone!=''">
+                and phone=#{phone}
+            </if>
+        </where>
+    </sql>
+    <update id="editPwd" parameterType="user">
+        update user u
+        <include refid="editInfo"></include>
+        <include refid="editInfo2"></include>
+    </update>
+    <update id="editUser" parameterType="user">
+        update user u
+        <include refid="editInfo"></include>
+        where u.id=#{id}
+    </update>
+    <insert id="addUser" parameterType="user">
+        insert into user (username,realname,password,phone,role_id)
+        values (#{username},#{realname},#{password},#{phone},#{roleId})
+    </insert>
+
+    <delete id="delUser" parameterType="int">
+        delete u from user u where u.id=#{delId}
+    </delete>
+
+    <delete id="delUsers" parameterType="int">
+        delete u from user u where u.id in
+        <foreach collection="delList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="resetPassword" parameterType="int">
+        update user u set u.password='$2a$10$20nPWoLayQqHzNfIxtp2LevQrhgW2PBeSeqgRgU4XFVinmBBaOjXm' where id in
+        <foreach collection="resetList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="findMobile" parameterType="String">
+        select count(*)
+        from user
+        where phone=#{phone}
+    </select>
+
+    <select id="findUsername" parameterType="String">
+        select count(*)
+        from user
+        where username=#{username}
+    </select>
+
+    <insert id="addLawyer" parameterType="user">
+        insert into user (username, realname, password, phone, role_id, state, is_first_login)
+        values (#{username},#{realname},#{password},#{phone},#{roleId},#{state},#{isFirstLogin});
+    </insert>
+</mapper>

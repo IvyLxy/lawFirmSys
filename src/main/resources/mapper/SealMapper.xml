@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ychs.lawfirmsys.mapper.SealMapper">
+    <sql id="queryInfo">
+        <where>
+            <if test="periodStart != null and periodStart != '' and periodEnd != null  and periodEnd != ''">
+                and use_date between #{periodStart} and #{periodEnd}
+            </if>
+        </where>
+    </sql>
+    <select id="getSealByCondition" parameterType="seal">
+        select * from seal
+        <include refid="queryInfo"></include>
+    </select>
+    <insert id="addSeal" parameterType="seal">
+        insert into seal (user, use_reason, use_date, operator, user_signature)
+        values (#{user}, #{useReason}, #{useDate}, '行政主管', #{userSignature});
+    </insert>
+</mapper>

@@ -1,0 +1,24 @@
+server:
+  port: 8888
+Spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/law_firm?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: 1103929
+mybatis:
+  type-aliases-package: com.ychs.lawfirmsys.bean,com.ychs.lawfirmsys.dto
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    mapUnderscoreToCamelCase: true
+
+pictureFile:
+  path: "D:/Projects/LawFirm/Projects/upload/"
+  path-mapping: "/myImg/"
+
+resources:
+  static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${pictureFile.path-mapping}
+
+
+

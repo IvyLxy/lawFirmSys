@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ychs.lawfirmsys.mapper.ContractMapper">
+    <sql id="queryInfo">
+        <where>
+            <if test="periodStart != null and periodStart != '' and periodEnd != null and periodEnd != ''">
+                and c.receive_date between #{periodStart} and #{periodEnd}
+            </if>
+            <if test="periodMonth != null and periodMonth !=''">
+                and YEAR(c.receive_date)=YEAR(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+                and MONTH(c.receive_date)=MONTH(STR_TO_DATE(#{periodMonth}, '%Y-%m'))
+            </if>
+            <if test="typeId != null">
+                and c.type_id=#{typeId}
+            </if>
+            <if test="lawyerId != null">
+                and c.lawyer_id=#{lawyerId}
+            </if>
+            <if test="state != null">
+                and c.state=#{state}
+            </if>
+        </where>
+    </sql>
+    <select id="getContractByConditions" parameterType="contract" resultType="contract">
+        select distinct c.*,l.lawyer_name as lawyerName,t.typeName as contractType
+        from contract c
+            left join lawyer l on l.id = c.lawyer_id
+            left join type t on c.type_id = t.typeId
+            <include refid="queryInfo"></include>
+    </select>
+    <insert id="addContract" parameterType="contract">
+        insert into contract (contract_num,contract_name,type_id,contract_money,lawyer_id,receive_date,operator,state,remark)
+        values (#{contractNum},#{contractName},#{typeId},#{contractMoney},#{lawyerId},#{receiveDate},#{operator},#{state},#{remark})
+    </insert>
+    <update id="modifyContractState" parameterType="contractCancel">
+        update contract set state=false
+        where contract_num=#{contractNum}
+    </update>
+</mapper>

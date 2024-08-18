@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ychs.lawfirmsys.mapper.LawyerMapper">
+    <sql id="queryInfo">
+        <where>
+            <if test="lawyerName != null and lawyerName != ''">
+                and l.lawyer_name=#{lawyerName}
+            </if>
+            <if test="careerYears!=null">
+                and TIMESTAMPDIFF(YEAR, l.qualification_date, CURDATE())=#{careerYears}
+            </if>
+            <if test="typeId!=null">
+                and l.type_id=#{typeId}
+            </if>
+            <if test="lawyerType!=null and lawyerType!=''">
+                and l.lawyer_type=#{lawyerType}
+            </if>
+            <if test="isActive!=null and isActive!=''">
+                and l.is_active=#{isActive}
+            </if>
+        </where>
+    </sql>
+    <resultMap id="typeMap" type="lawyer">
+        <result column="typeName" property="specialty"></result>
+    </resultMap>
+    <select id="getLawyersByCondition" parameterType="lawyer" resultMap="typeMap">
+        select l.*,TIMESTAMPDIFF(YEAR, l.qualification_date, CURDATE()) as careerYears,t.typeId, t.typeName
+        from lawyer l left join type t on l.type_id = t.typeId
+        <include refid="queryInfo"></include>
+    </select>
+    <sql id="editInfo">
+        <set>
+            <if test="phone != null and phone!=''">
+                l.phone=#{phone},
+            </if>
+            <if test="email != null and email!=''">
+                l.email=#{email},
+            </if>
+            <if test="isActive != null">
+                l.is_active=#{isActive},
+            </if>
+            <if test="isPartner != null">
+                l.is_partner=#{isPartner},
+            </if>
+            <if test="lawyerType != null and lawyerType != ''">
+                l.lawyer_type=#{lawyerType},
+            </if>
+        </set>
+    </sql>
+    <update id="editLawyer" parameterType="lawyer">
+        update lawyer l
+        <include refid="editInfo"></include>
+        where id=#{id}
+    </update>
+    <insert id="addLawyer" parameterType="lawyer">
+        insert into lawyer (lawyer_name, gender, nation, birth, graduate_school, major, edu, politics, id_card_num,
+                            phone, email, practice_certificate_num, qualification_date, type_id, is_partner, hire_date,
+                            lawyer_type, part_time_job, is_representative, is_active, remark,
+                            self_image, id_card_front_img, id_card_back_img, qualification_certificate)
+        values (#{lawyerName}, #{gender}, #{nation}, #{birth}, #{graduateSchool}, #{major}, #{edu}, #{politics}, #{idCardNum},
+                #{phone}, #{email}, #{practiceCertificateNum}, #{qualificationDate}, #{typeId}, #{isPartner}, #{hireDate},
+                #{lawyerType}, #{partTimeJob}, #{isRepresentative}, #{isActive}, #{remark},
+                #{selfImage}, #{idCardFrontImg}, #{idCardBackImg}, #{qualificationCertificate});
+    </insert>
+    <select id="getAllNames" resultType="Lawyer">
+        select l.id,l.lawyer_name
+        from lawyer l
+    </select>
+
+    <select id="getSelfInfo" parameterType="String" resultType="lawyer">
+        SELECT l.*,t.typeName
+        FROM USER u
+            LEFT JOIN lawyer l ON u.realname = l.lawyer_name
+            LEFT JOIN type t ON t.typeId = l.type_id
+        where l.lawyer_name=#{realname}
+    </select>
+
+    <sql id="getInfo">
+        <where>
+            <if test="id!=null">
+                and lawyer_id=#{id}
+            </if>
+            <if test="realname!=null and realname!=''">
+                and lawyer_id=(
+                select l.id from lawyer l where lawyer_name=#{realname}
+                )
+            </if>
+        </where>
+    </sql>
+    <select id="getAwards" parameterType="lawyerSelfInfoDto" resultType="awards">
+        select *
+        from awards
+        <include refid="getInfo"/>
+    </select>
+
+    <select id="getPunishment" parameterType="lawyerSelfInfoDto" resultType="punishment">
+        select *
+        from punishment
+        <include refid="getInfo"/>
+    </select>
+</mapper>
